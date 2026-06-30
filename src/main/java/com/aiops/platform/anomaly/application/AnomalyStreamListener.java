@@ -40,7 +40,7 @@ public class AnomalyStreamListener {
 
             if (features == null) return; // window not yet full enough
 
-            double score = detector.score(features);
+            double score = detector.score(features, event.serviceId(), event.metricName());
 
             if (score >= detector.threshold()) {
                 streamBridge.send("anomalyProducer-out-0", new AnomalyEvent(

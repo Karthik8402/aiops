@@ -50,22 +50,33 @@ public class IncidentStreamListener {
 
             // 2. Fetch or create incident within 5 minutes correlation window
             Anomaly finalAnomaly = anomaly;
-            Incident incident = incidentRepository
-                .findOpenByServiceWithinWindow(event.serviceId(), CORRELATION_WINDOW)
-                .orElseGet(() -> incidentRepository.save(Incident.openFrom(event)));
+            var existing = incidentRepository
+                .findOpenByServiceWithinWindow(event.serviceId(), CORRELATION_WINDOW);
+
+            boolean isNew;
+            Incident incident;
+            if (existing.isPresent()) {
+                incident = existing.get();
+                isNew = false;
+            } else {
+                incident = incidentRepository.save(Incident.openFrom(event));
+                isNew = true;
+            }
 
             // 3. Link anomaly
             incident.getAnomalies().add(finalAnomaly);
             incidentRepository.save(incident);
 
-            // 4. Publish incident correlation event
-            streamBridge.send("incidentProducer-out-0", new IncidentEvent(
-                incident.getId(),
-                incident.getServiceId(),
-                incident.getTitle(),
-                incident.getSeverity(),
-                Instant.now()
-            ));
+            // 4. Publish incident correlation event only for new incidents
+            if (isNew) {
+                streamBridge.send("incidentProducer-out-0", new IncidentEvent(
+                    incident.getId(),
+                    incident.getServiceId(),
+                    incident.getTitle(),
+                    incident.getSeverity(),
+                    Instant.now()
+                ));
+            }
         };
     }
 }

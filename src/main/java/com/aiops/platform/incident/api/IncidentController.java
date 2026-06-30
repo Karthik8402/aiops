@@ -68,6 +68,9 @@ public class IncidentController {
         if ("RESOLVED".equals(oldStatus) && ("OPEN".equals(newStatus) || "ACKNOWLEDGED".equals(newStatus))) {
             throw new ApiException(HttpStatus.CONFLICT, "Cannot move RESOLVED incident back to " + newStatus);
         }
+        if ("ACKNOWLEDGED".equals(oldStatus) && "OPEN".equals(newStatus)) {
+            throw new ApiException(HttpStatus.CONFLICT, "Cannot move ACKNOWLEDGED incident back to OPEN");
+        }
 
         incident.setStatus(newStatus);
         if ("RESOLVED".equals(newStatus)) {

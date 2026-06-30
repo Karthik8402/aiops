@@ -67,13 +67,34 @@ class FeatureWindowBufferTest {
     void testResetErrorCount() {
         buffer.recordLog(new LogEvent(1L, "ERROR", "Error 1", Instant.now()));
         buffer.resetErrorCount(1L);
-        
+
         for (int i = 0; i < 10; i++) {
             buffer.recordMetric(new MetricEvent(1L, "latency_p99", 50.0, Instant.now()));
         }
-        
+
         double[] features = buffer.extractFeatures(1L, "latency_p99");
         assertNotNull(features);
         assertEquals(0.0, features[5]); // error count should be reset
+    }
+
+    @Test
+    void testErrorCountPerServiceIsolation() {
+        buffer.recordLog(new LogEvent(1L, "ERROR", "Service 1 error", Instant.now()));
+        buffer.recordLog(new LogEvent(1L, "ERROR", "Service 1 error 2", Instant.now()));
+        buffer.recordLog(new LogEvent(1L, "INFO", "Service 1 info", Instant.now()));
+        buffer.recordLog(new LogEvent(2L, "ERROR", "Service 2 error", Instant.now()));
+
+        for (int i = 0; i < 10; i++) {
+            buffer.recordMetric(new MetricEvent(1L, "latency_p99", 50.0, Instant.now()));
+            buffer.recordMetric(new MetricEvent(2L, "latency_p99", 50.0, Instant.now()));
+        }
+
+        double[] f1 = buffer.extractFeatures(1L, "latency_p99");
+        assertNotNull(f1);
+        assertEquals(2.0, f1[5], "Service 1 should have 2 errors");
+
+        double[] f2 = buffer.extractFeatures(2L, "latency_p99");
+        assertNotNull(f2);
+        assertEquals(1.0, f2[5], "Service 2 should have 1 error");
     }
 }

@@ -2,12 +2,14 @@ package com.aiops.platform.anomaly.application;
 
 import com.aiops.platform.ingestion.domain.LogEvent;
 import com.aiops.platform.ingestion.domain.MetricEvent;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 @Component
 public class FeatureWindowBuffer {
@@ -30,11 +32,7 @@ public class FeatureWindowBuffer {
 
     public void recordLog(LogEvent event) {
         if ("ERROR".equalsIgnoreCase(event.logLevel())) {
-            errorCounts.merge(event.serviceId(), 1, (oldVal, newVal) -> {
-                int oldValInt = oldVal != null ? oldVal : 0;
-                int newValInt = newVal != null ? newVal : 0;
-                return oldValInt + newValInt;
-            });
+            errorCounts.merge(event.serviceId(), 1, Integer::sum);
         }
     }
 
@@ -70,5 +68,10 @@ public class FeatureWindowBuffer {
 
     public void resetErrorCount(Long serviceId) {
         errorCounts.put(serviceId, 0);
+    }
+
+    @Scheduled(fixedRate = 5, timeUnit = TimeUnit.MINUTES)
+    public void cleanupErrorCounts() {
+        errorCounts.clear();
     }
 }

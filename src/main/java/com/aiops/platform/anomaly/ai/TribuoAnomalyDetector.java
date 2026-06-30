@@ -33,7 +33,7 @@ public class TribuoAnomalyDetector implements AnomalyDetector {
     @PostConstruct
     public void init() {
         var params = new SVMParameters<>(new SVMAnomalyType(SVMAnomalyType.SVMMode.ONE_CLASS), KernelType.RBF);
-        params.setNu(0.1); // expected fraction of outliers
+        params.setNu(0.1);
         params.setGamma(0.1);
 
         var trainer = new LibSVMAnomalyTrainer(params);
@@ -45,12 +45,12 @@ public class TribuoAnomalyDetector implements AnomalyDetector {
         String[] featureNames = { "mean", "stddev", "min", "max", "p95", "errorCount" };
         for (int i = 0; i < 500; i++) {
             double[] vals = {
-                    50 + rng.nextGaussian() * 10, // mean latency ~50ms
-                    5 + rng.nextGaussian() * 2, // stddev
-                    30 + rng.nextGaussian() * 5, // min
-                    80 + rng.nextGaussian() * 10, // max
-                    75 + rng.nextGaussian() * 10, // p95
-                    rng.nextInt(3) // 0–2 errors per window
+                    50 + rng.nextGaussian() * 10,
+                    5 + rng.nextGaussian() * 2,
+                    30 + rng.nextGaussian() * 5,
+                    80 + rng.nextGaussian() * 10,
+                    75 + rng.nextGaussian() * 10,
+                    rng.nextInt(3)
             };
             dataset.add(new ArrayExample<>(AnomalyFactory.EXPECTED_EVENT, featureNames, vals));
         }
@@ -59,7 +59,7 @@ public class TribuoAnomalyDetector implements AnomalyDetector {
     }
 
     @Override
-    public double score(double[] features) {
+    public double score(double[] features, Long serviceId, String metricName) {
         if (features == null || features.length != FEATURE_DIM) {
             return 0.0;
         }

@@ -10,6 +10,11 @@ async function apiFetch(path, options = {}) {
       ...(options.headers ?? {}),
     },
   });
+  if (res.status === 401) {
+    sessionStorage.removeItem("aiops_token");
+    window.location.reload();
+    throw new Error("401 Unauthorized");
+  }
   if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
   return res.json();
 }

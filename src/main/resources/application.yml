@@ -120,7 +120,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,prometheus,metrics
+        include: health,info,prometheus,metrics,kafka
   endpoint:
     health:
       show-details: always
