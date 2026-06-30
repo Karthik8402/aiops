@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FindBugsFilter>
+    <!-- Ignore mutable object exposure warnings (EI_EXPOSE_REP, EI_EXPOSE_REP2) -->
+    <!-- These are standard in Spring Boot DTOs and records -->
+    <Match>
+        <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2" />
+    </Match>
+
+    <!-- Ignore JPA/Hibernate serialization warnings -->
+    <Match>
+        <Bug pattern="SE_BAD_FIELD" />
+    </Match>
+</FindBugsFilter>

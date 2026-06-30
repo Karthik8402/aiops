@@ -1,0 +1,9 @@
+aiops:
+  generator:
+    enabled: true
+
+spring:
+  task:
+    execution:
+      pool:
+        core-size: 4

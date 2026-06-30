@@ -1,0 +1,147 @@
+spring:
+  application:
+    name: aiops-platform
+  cloud:
+    function:
+      definition: logsConsumer;metricsConsumer;anomalyConsumer;incidentConsumerForAlert;incidentConsumerForDashboard;alertConsumerForDashboard
+    stream:
+      kafka:
+        binder:
+          brokers: ${KAFKA_BROKERS:localhost:9092}
+          auto-create-topics: true
+        bindings:
+          logsConsumer-in-0:
+            consumer:
+              enableDlq: true
+              dlqName: logs-topic.DLT
+          metricsConsumer-in-0:
+            consumer:
+              enableDlq: true
+              dlqName: metrics-topic.DLT
+          anomalyConsumer-in-0:
+            consumer:
+              enableDlq: true
+              dlqName: anomaly-topic.DLT
+          incidentConsumerForAlert-in-0:
+            consumer:
+              enableDlq: true
+              dlqName: incident-topic.DLT
+          incidentConsumerForDashboard-in-0:
+            consumer:
+              enableDlq: true
+              dlqName: incident-topic-dashboard.DLT
+          alertConsumerForDashboard-in-0:
+            consumer:
+              enableDlq: true
+              dlqName: alert-topic-dashboard.DLT
+      bindings:
+        # Producers — sent via StreamBridge.send(bindingName, event)
+        logProducer-out-0:
+          destination: logs-topic
+        metricProducer-out-0:
+          destination: metrics-topic
+        anomalyProducer-out-0:
+          destination: anomaly-topic
+        incidentProducer-out-0:
+          destination: incident-topic
+        alertProducer-out-0:
+          destination: alert-topic
+
+        # Consumers — declared as Consumer<T> @Bean functions
+        logsConsumer-in-0:
+          destination: logs-topic
+          group: anomaly-engine
+          consumer:
+            max-attempts: 3
+            back-off-initial-interval: 1000
+            back-off-max-interval: 10000
+            back-off-multiplier: 2.0
+        metricsConsumer-in-0:
+          destination: metrics-topic
+          group: anomaly-engine
+          consumer:
+            max-attempts: 3
+            back-off-initial-interval: 1000
+            back-off-max-interval: 10000
+            back-off-multiplier: 2.0
+        anomalyConsumer-in-0:
+          destination: anomaly-topic
+          group: incident-engine
+          consumer:
+            max-attempts: 3
+            back-off-initial-interval: 1000
+            back-off-max-interval: 10000
+            back-off-multiplier: 2.0
+        incidentConsumerForAlert-in-0:
+          destination: incident-topic
+          group: alert-engine
+          consumer:
+            max-attempts: 3
+            back-off-initial-interval: 1000
+            back-off-max-interval: 10000
+            back-off-multiplier: 2.0
+        incidentConsumerForDashboard-in-0:
+          destination: incident-topic
+          group: dashboard-broadcaster
+          consumer:
+            max-attempts: 3
+            back-off-initial-interval: 1000
+            back-off-max-interval: 10000
+            back-off-multiplier: 2.0
+        alertConsumerForDashboard-in-0:
+          destination: alert-topic
+          group: dashboard-broadcaster
+          consumer:
+            max-attempts: 3
+            back-off-initial-interval: 1000
+            back-off-max-interval: 10000
+            back-off-multiplier: 2.0
+
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/aiops}
+    username: ${SPRING_DATASOURCE_USERNAME:aiops}
+    password: ${SPRING_DATASOURCE_PASSWORD:changeme}
+    hikari:
+      maximum-pool-size: 5
+      connection-timeout: 20000
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: false
+
+  flyway:
+    baseline-on-migrate: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  endpoint:
+    health:
+      show-details: always
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+  info:
+    git:
+      mode: full
+    build:
+      enabled: true
+  server:
+    port: 8080
+
+aiops:
+  anomaly:
+    threshold: 0.6
+    zscore:
+      threshold: 0.65
+  security:
+    jwt:
+      secret: ${JWT_SECRET:dev-only-secret-change-in-prod-must-be-very-long-secret-key-32-bytes}
+      expiration-ms: 86400000 # 24 hours

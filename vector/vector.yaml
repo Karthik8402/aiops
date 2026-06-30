@@ -1,0 +1,48 @@
+sources:
+  docker_logs:
+    type: "docker_logs"
+    exclude_containers: ["vector"]
+
+transforms:
+  format_logs:
+    type: "remap"
+    inputs: ["docker_logs"]
+    source: |
+      # Map container names to service IDs
+      if .container_name == "aiops-app" {
+        .serviceId = 1
+      } else if .container_name == "postgres" {
+        .serviceId = 2
+      } else {
+        .serviceId = 3
+      }
+      
+      # Determine log level
+      if contains(string!(.message), "ERROR") || contains(string!(.message), "CRITICAL") || contains(string!(.message), "Exception") {
+        .logLevel = "ERROR"
+      } else if contains(string!(.message), "WARN") || contains(string!(.message), "warning") {
+        .logLevel = "WARN"
+      } else {
+        .logLevel = "INFO"
+      }
+      
+      # Format fields to match LogEvent: Long serviceId, String logLevel, String message, Instant occurredAt
+      .occurredAt = .timestamp
+      
+      # Clean up extra Docker fields
+      del(.container_created_at)
+      del(.container_id)
+      del(.container_name)
+      del(.image)
+      del(.label)
+      del(.stream)
+      del(.timestamp)
+
+sinks:
+  kafka_logs:
+    type: "kafka"
+    inputs: ["format_logs"]
+    bootstrap_servers: "kafka:9092"
+    topic: "logs-topic"
+    encoding:
+      codec: "json"

@@ -1,0 +1,64 @@
+# Maven Build Artifacts
+target/
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# Compiled classes
+*.class
+
+# Log Files
+*.log
+logs/
+
+# Eclipse IDE
+.metadata
+.project
+.classpath
+.settings/
+*.launch
+*.psess
+*.vspx
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# NetBeans IDE
+nbproject/private/
+build/
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
+
+# VS Code
+.vscode/
+.history/
+*.code-workspace
+
+# OS Files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Node / Frontend temporary folders (if any escape nested folder)
+node_modules/
+dist/
+
+# Local configuration overrides (e.g. secret keys or localcompose overrides)
+.env
+.env.local
+
+# Gemini Agent IDE Scratch / System Directories
+.gemini/
+.agents/*
+
+project details/*
+
