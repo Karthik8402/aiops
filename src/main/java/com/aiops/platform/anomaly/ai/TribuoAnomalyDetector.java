@@ -67,8 +67,14 @@ public class TribuoAnomalyDetector implements AnomalyDetector {
         var example = new ArrayExample<>(AnomalyFactory.UNKNOWN_EVENT, featureNames, features);
         var prediction = model.predict(example);
 
-        double rawScore = prediction.getOutput().getScore();
-        return 1.0 / (1.0 + Math.exp(-rawScore)); // Sigmoid normalization
+        var output = prediction.getOutput();
+        if (output.getType() == org.tribuo.anomaly.Anomaly.AnomalyType.ANOMALOUS) {
+            double rawScore = output.getScore();
+            return Math.max(0.7, 1.0 / (1.0 + Math.exp(-rawScore)));
+        } else {
+            double rawScore = output.getScore();
+            return Math.min(0.3, 1.0 / (1.0 + Math.exp(-rawScore)));
+        }
     }
 
     @Override
