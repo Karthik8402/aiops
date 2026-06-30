@@ -1,5 +1,6 @@
 package com.aiops.platform.anomaly.ai;
 
+import org.tribuo.anomaly.Event;
 import org.tribuo.anomaly.AnomalyFactory;
 import org.tribuo.anomaly.libsvm.LibSVMAnomalyModel;
 import org.tribuo.anomaly.libsvm.LibSVMAnomalyTrainer;
@@ -68,7 +69,7 @@ public class TribuoAnomalyDetector implements AnomalyDetector {
         var prediction = model.predict(example);
 
         var output = prediction.getOutput();
-        if (output.getType() == org.tribuo.anomaly.Anomaly.AnomalyType.ANOMALOUS) {
+        if (output.getType() == Event.EventType.ANOMALOUS) {
             double rawScore = output.getScore();
             return Math.max(0.7, 1.0 / (1.0 + Math.exp(-rawScore)));
         } else {
